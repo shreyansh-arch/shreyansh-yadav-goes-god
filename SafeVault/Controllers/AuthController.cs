@@ -1,12 +1,32 @@
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
-public class AuthService {
-    public bool Authenticate(string inputPassword, string storedHash) {
-        return BCrypt.Net.BCrypt.Verify(inputPassword, storedHash);
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase {
+    private readonly AuthService _authService;
+
+    public AuthController(AuthService authService) {
+        _authService = authService;
     }
 
-    public string HashPassword(string password) {
-        return BCrypt.Net.BCrypt.HashPassword(password);
+    [HttpPost("login")]
+    public IActionResult Login([FromForm] string username, [FromForm] string password) {
+        // Simulate secure user retrieval (parameterized query assumed here)
+        var user = GetUserFromDatabase(username); // placeholder method
+
+        if (user != null && _authService.Authenticate(password, user.PasswordHash)) {
+            return Ok($"Welcome, {user.Username}");
+        }
+
+        return Unauthorized();
+    }
+
+    private User GetUserFromDatabase(string username) {
+        // In real code, query DB with parameterized statements
+        return new User {
+            Username = username,
+            PasswordHash = _authService.HashPassword("securePassword123"),
+            Role = "admin"
+        };
     }
 }
